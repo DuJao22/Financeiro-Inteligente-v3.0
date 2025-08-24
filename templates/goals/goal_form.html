@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ title }}</h1>
+        <p class="text-gray-600">
+            {% if goal %}
+                Edite os detalhes da sua meta financeira
+            {% else %}
+                Crie uma nova meta para organizar seus objetivos financeiros
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Form -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+            
+            <div class="space-y-6">
+                <!-- Title -->
+                <div>
+                    <label for="{{ form.title.id }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.title.label.text }}
+                    </label>
+                    {{ form.title(class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-transparent" + (" border-red-300" if form.title.errors else "")) }}
+                    {% if form.title.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.title.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Ex: Comprar um carro, Reserva de emergência, Viagem para Europa</p>
+                </div>
+
+                <!-- Target Amount -->
+                <div>
+                    <label for="{{ form.target_amount.id }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.target_amount.label.text }}
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-2 text-gray-500">R$</span>
+                        {{ form.target_amount(class="w-full border border-gray-300 rounded-lg pl-12 pr-3 py-2 focus:ring-2 focus:ring-primary focus:border-transparent" + (" border-red-300" if form.target_amount.errors else "")) }}
+                    </div>
+                    {% if form.target_amount.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.target_amount.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Current Amount -->
+                <div>
+                    <label for="{{ form.current_amount.id }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.current_amount.label.text }}
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-2 text-gray-500">R$</span>
+                        {{ form.current_amount(class="w-full border border-gray-300 rounded-lg pl-12 pr-3 py-2 focus:ring-2 focus:ring-primary focus:border-transparent" + (" border-red-300" if form.current_amount.errors else "")) }}
+                    </div>
+                    {% if form.current_amount.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.current_amount.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Quanto você já tem para esta meta?</p>
+                </div>
+
+                <!-- Target Date -->
+                <div>
+                    <label for="{{ form.target_date.id }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.target_date.label.text }}
+                    </label>
+                    {{ form.target_date(class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-transparent" + (" border-red-300" if form.target_date.errors else "")) }}
+                    {% if form.target_date.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.target_date.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Quando você quer atingir esta meta?</p>
+                </div>
+
+                <!-- Description -->
+                {% if form.description %}
+                <div>
+                    <label for="{{ form.description.id }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.description.label.text }}
+                    </label>
+                    {{ form.description(class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-transparent resize-none" + (" border-red-300" if form.description.errors else ""), rows="3") }}
+                    {% if form.description.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.description.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Descreva sua meta ou estratégia para alcançá-la</p>
+                </div>
+                {% endif %}
+
+                <!-- Progress Preview (only for edit) -->
+                {% if goal %}
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="text-sm font-medium text-gray-700 mb-2">Progresso Atual</h3>
+                    <div class="mb-2">
+                        <div class="flex justify-between items-center text-sm text-gray-600">
+                            <span>{{ "R$ {:,.2f}".format(goal.current_amount).replace(",", "X").replace(".", ",").replace("X", ".") }} de {{ "R$ {:,.2f}".format(goal.target_amount).replace(",", "X").replace(".", ",").replace("X", ".") }}</span>
+                            <span>{{ "%.1f"|format(goal.get_progress_percentage()) }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                            <div class="bg-primary h-2 rounded-full" style="width: {{ goal.get_progress_percentage() }}%"></div>
+                        </div>
+                    </div>
+                    {% if goal.get_days_remaining() is not none %}
+                    <p class="text-sm text-gray-600">
+                        {% if goal.get_days_remaining() >= 0 %}
+                            ⏰ {{ goal.get_days_remaining() }} dias restantes
+                        {% else %}
+                            ⚠️ Meta vencida há {{ -goal.get_days_remaining() }} dias
+                        {% endif %}
+                    </p>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 pt-6 mt-6 border-t border-gray-200">
+                {{ form.submit(class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors text-center") }}
+                <a href="{{ url_for('goals.goals_list') }}" class="bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 transition-colors text-center">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tips -->
+    <div class="mt-8 bg-blue-50 rounded-lg p-6">
+        <h3 class="text-lg font-medium text-blue-900 mb-3">💡 Dicas para Metas Eficazes</h3>
+        <ul class="space-y-2 text-sm text-blue-800">
+            <li>🎯 <strong>Seja específico:</strong> "Comprar um carro de R$ 50.000" é melhor que "Comprar um carro"</li>
+            <li>📅 <strong>Defina prazos realistas:</strong> Considere sua capacidade de poupança mensal</li>
+            <li>💰 <strong>Atualize regularmente:</strong> Mantenha o progresso atualizado para manter a motivação</li>
+            <li>🎉 <strong>Comemore conquistas:</strong> Reconheça quando atingir marcos importantes</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+// Auto-calculate progress when amounts change
+document.addEventListener('DOMContentLoaded', function() {
+    const targetAmount = document.getElementById('target_amount');
+    const currentAmount = document.getElementById('current_amount');
+    
+    function updateProgress() {
+        const target = parseFloat(targetAmount.value) || 0;
+        const current = parseFloat(currentAmount.value) || 0;
+        
+        if (target > 0) {
+            const progress = Math.min(100, (current / target) * 100);
+            // You can add progress preview here if needed
+        }
+    }
+    
+    targetAmount.addEventListener('input', updateProgress);
+    currentAmount.addEventListener('input', updateProgress);
+    
+    // Set minimum date to today for target date
+    const targetDate = document.getElementById('target_date');
+    if (targetDate) {
+        const today = new Date().toISOString().split('T')[0];
+        targetDate.setAttribute('min', today);
+    }
+});
+</script>
+{% endblock %}
